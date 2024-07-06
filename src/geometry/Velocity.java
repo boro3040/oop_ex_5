@@ -4,6 +4,8 @@ Barak Davidovitch
 OOP ex2
  */
 
+package geometry;
+
 /**
  * Velocity specifies the change in position on the `x` and the `y` axes.
  */

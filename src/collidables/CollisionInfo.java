@@ -4,6 +4,10 @@ Barak Davidovitch
 OOP BIU 2024
  */
 
+package collidables;
+
+import geometry.Point;
+
 /**
  * Class that holds the information about the collision.
  * it's holds the collision point, and the Collidable object it's run into.

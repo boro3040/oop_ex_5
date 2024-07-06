@@ -3,10 +3,19 @@ Barak Davidovitch
 211604350
 OOP BIU 2024
  */
+
+package sprites;
+
 import biuoop.DrawSurface;
 import java.awt.Color;
 import biuoop.GUI;
 import biuoop.KeyboardSensor;
+import geometry.Point;
+import geometry.Rectangle;
+import geometry.Velocity;
+import collidables.Collidable;
+import game_util.Game;
+import game_util.Util;
 
 /**
  * This class is the "player" in the game. it is rectangle that is controlled
@@ -123,7 +132,7 @@ public class Paddle implements Sprite, Collidable {
     }
 
     @Override
-    public Velocity hit(Point collisionPoint, Velocity currentVelocity) {
+    public Velocity hit(Ball hitter, Point collisionPoint, Velocity currentVelocity) {
         double newDx = currentVelocity.getDx();
         double newDy = currentVelocity.getDy();
 
@@ -180,5 +189,20 @@ public class Paddle implements Sprite, Collidable {
     public void addToGame(Game g) {
         g.addCollidable(this);
         g.addSprite(this);
+    }
+
+    @Override
+    public boolean equals(Collidable other) {
+        return this.getCollisionRectangle().equals(other.getCollisionRectangle());
+    }
+
+    @Override
+    public boolean equals(Sprite other) {
+        return this.getPoint().equals(other.getPoint());
+    }
+
+    @Override
+    public Point getPoint() {
+        return this.block.getPoint();
     }
 }

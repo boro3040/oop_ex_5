@@ -3,6 +3,9 @@ Barak Davidovitch
 211604350
 OOP BIU 2024
  */
+
+package sprites;
+
 import java.util.List;
 import java.util.ArrayList;
 import biuoop.DrawSurface;
@@ -39,10 +42,24 @@ public class SpriteCollection {
     }
 
     /**
+     * remove a Sprite from the collection.
+     * @param s The sprite we want to delete.
+     */
+    public void removeSprite(Sprite s) {
+        int index = 0;
+        for (Sprite tempSprite : new ArrayList<>(this.sprites)) {
+            if (s.equals(tempSprite)) {
+                this.sprites.remove(index);
+            }
+            index++;
+        }
+    }
+
+    /**
      * call timePassed() on all sprites.
      */
     public void notifyAllTimePassed() {
-        for (Sprite s : this.sprites) {
+        for (Sprite s : new ArrayList<>(this.sprites)) {
             s.timePassed();
         }
     }
@@ -52,7 +69,7 @@ public class SpriteCollection {
      * @param d is the DrawSurface we want to draw on.
      */
     public void drawAllOn(DrawSurface d) {
-        for (Sprite s : this.sprites) {
+        for (Sprite s : new ArrayList<>(this.sprites)) {
             s.drawOn(d);
         }
     }

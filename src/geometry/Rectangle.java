@@ -3,6 +3,11 @@ Barak Davidovitch
 211604350
 oop biu 2024
 */
+
+package geometry;
+
+import game_util.Util;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -141,5 +146,16 @@ public class Rectangle {
      */
     public void setUpperLeft(Point newPoint) {
         this.upperLeft = new Point(newPoint);
+    }
+
+    /**
+     * This function checks if 2 rectangles are equal.
+     * @param other THe other rectangle we want to check equality.
+     * @return true if the rectangles are in the same place, otherwise false.
+     */
+    public boolean equals(Rectangle other) {
+        return (other.getUpperLeft().equals(this.upperLeft))
+                && (Util.isEqual(this.height, other.getHeight()))
+                && (Util.isEqual(this.width, other.getWidth()));
     }
 }

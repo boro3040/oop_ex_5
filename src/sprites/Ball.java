@@ -4,8 +4,19 @@ Barak Davidovitch
 OOP ex2
  */
 
+package sprites;
+
 import biuoop.DrawSurface;
 import java.awt.Color;
+import geometry.Point;
+import geometry.Rectangle;
+import geometry.Velocity;
+import geometry.Line;
+import collidables.Collidable;
+import collidables.CollisionInfo;
+import game_util.GameEnvironment;
+import game_util.Game;
+import game_util.Util;
 
 /**
  * Class representing balls.
@@ -20,7 +31,7 @@ public class Ball implements Sprite {
     */
     private Point center;
     private final int radius;
-    private final Color color;
+    private Color color;
     private Velocity velocity;
     private final GameEnvironment ge;
 
@@ -113,6 +124,14 @@ public class Ball implements Sprite {
     }
 
     /**
+     * set the color of the ball.
+     * @param color THe color we want to change to.
+     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    /**
      * Get the current velocity of the ball.
      * @return the velocity on Velocity object type.
      */
@@ -132,10 +151,6 @@ public class Ball implements Sprite {
     public void drawOn(DrawSurface d) {
         d.setColor(this.color);
         d.fillCircle(this.getX(), this.getY(), this.radius);
-
-        // draw red dot inside and black frame.
-        d.setColor(Color.RED);
-        d.fillCircle(this.getX(), this.getY(), 2);
         d.setColor(Color.BLACK);
         d.drawCircle(this.getX(), this.getY(), this.radius);
     }
@@ -149,6 +164,25 @@ public class Ball implements Sprite {
     public void addToGame(Game g) {
         g.addSprite(this);
         g.addBall(this);
+    }
+
+    @Override
+    public boolean equals(Sprite other) {
+        return this.getPoint().equals(other.getPoint());
+    }
+
+    @Override
+    public Point getPoint() {
+        return new Point(this.center);
+    }
+
+    /**
+     * this method remove a ball from the Game.
+     * @param g The Game we want to remove from.
+     */
+    public void removeFromGame(Game g) {
+        g.removeSprite(this);
+        g.removeBall(this);
     }
 
     /**
@@ -188,7 +222,7 @@ public class Ball implements Sprite {
         this.center = trajectory.start();
         // change the Velocity of the ball
         Collidable colObj = colInfo.collisionObject();
-        this.velocity = colObj.hit(colInfo.collisionPoint(), this.velocity);
+        this.velocity = colObj.hit(this, colInfo.collisionPoint(), this.velocity);
     }
 
     /**

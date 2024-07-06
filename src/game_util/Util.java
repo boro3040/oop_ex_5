@@ -4,6 +4,8 @@ Barak Davidovitch
 OOP ex2
  */
 
+package game_util;
+
 /**
  * class of utility, helper methods to compression with threshold.
  */

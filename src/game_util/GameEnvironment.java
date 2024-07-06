@@ -3,8 +3,15 @@ Barak Davidovitch
 211604350
 OOP BIU 2024
  */
+
+package game_util;
+
 import java.util.List;
 import java.util.ArrayList;
+import collidables.Collidable;
+import collidables.CollisionInfo;
+import geometry.Line;
+import geometry.Point;
 
 /**
  * This class holds the collection of things that the ball can collide with.
@@ -35,6 +42,20 @@ public class GameEnvironment {
      */
     public void addCollidable(Collidable c) {
         this.collidables.add(c);
+    }
+
+    /**
+     * This method remove Collidable object from the GameEnvironment.
+     * @param c the Collidable we want to remove.
+     */
+    public void removeCollidable(Collidable c) {
+        int index = 0;
+        for (Collidable tempCol : new ArrayList<>(this.collidables)) {
+            if (c.equals(tempCol)) {
+                this.collidables.remove(index);
+            }
+            index++;
+        }
     }
 
     /**

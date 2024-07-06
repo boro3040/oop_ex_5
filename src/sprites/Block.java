@@ -3,18 +3,32 @@ Barak Davidovitch
 211604350
 OOP BIU 2024
  */
+
+package sprites;
+
 import biuoop.DrawSurface;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import game_util.listeners.HitListener;
+import game_util.listeners.HitNotifier;
+import geometry.Point;
+import geometry.Rectangle;
+import geometry.Velocity;
+import collidables.Collidable;
+import game_util.Game;
+import game_util.Util;
 
 /**
  * This class implements a block, that made of rectangle that is collidable
  * object.
  */
-public class Block implements Collidable, Sprite {
+public class Block implements Collidable, Sprite, HitNotifier {
 
     private final Rectangle rectangle;
     private final Color insideColor;
     private final Color outsideColor;
+    private final List<HitListener> hitListeners;
 
     /**
      * The constructor of the Block class.
@@ -25,6 +39,7 @@ public class Block implements Collidable, Sprite {
         this.rectangle = new Rectangle(rectangle);
         this.insideColor = color;
         this.outsideColor = color;
+        this.hitListeners = new ArrayList<>();
     }
 
     /**
@@ -37,6 +52,7 @@ public class Block implements Collidable, Sprite {
         this.rectangle = new Rectangle(rectangle);
         this.insideColor = insideColor;
         this.outsideColor = outsideColor;
+        this.hitListeners = new ArrayList<>();
     }
 
     /**
@@ -51,6 +67,7 @@ public class Block implements Collidable, Sprite {
         this.rectangle = new Rectangle(upperLeft, width, height);
         this.insideColor = color;
         this.outsideColor = color;
+        this.hitListeners = new ArrayList<>();
     }
 
     /**
@@ -61,6 +78,7 @@ public class Block implements Collidable, Sprite {
         this.rectangle = new Rectangle(b.getRectangle());
         this.insideColor = b.insideColor;
         this.outsideColor = b.outsideColor;
+        this.hitListeners = new ArrayList<>();
     }
 
     @Override
@@ -69,7 +87,7 @@ public class Block implements Collidable, Sprite {
     }
 
     @Override
-    public Velocity hit(Point collisionPoint, Velocity currentVelocity) {
+    public Velocity hit(Ball hitter, Point collisionPoint, Velocity currentVelocity) {
         double newDx = currentVelocity.getDx();
         double newDy = currentVelocity.getDy();
 
@@ -84,6 +102,11 @@ public class Block implements Collidable, Sprite {
             this.rectangle.getUpperLeft().getY() + this.rectangle.getHeight())) {
             newDy = -newDy;
         }
+
+        if (!ballColorMatch(hitter)) {
+            this.notifyHit(hitter);
+        }
+
         return new Velocity(newDx, newDy);
     }
 
@@ -113,6 +136,31 @@ public class Block implements Collidable, Sprite {
         g.addSprite(this);
     }
 
+    @Override
+    public boolean equals(Collidable other) {
+        return this.getCollisionRectangle().equals(other.getCollisionRectangle());
+    }
+
+    @Override
+    public boolean equals(Sprite other) {
+        return this.getPoint().equals(other.getPoint());
+    }
+
+    @Override
+    public Point getPoint() {
+        return this.rectangle.getUpperLeft();
+    }
+
+    @Override
+    public void addHitListener(HitListener hl) {
+        this.hitListeners.add(hl);
+    }
+
+    @Override
+    public void removeHitListener(HitListener hl) {
+        this.hitListeners.remove(hl);
+    }
+
     /**
      * add the screen only like sprite and not collidable.
      * @param g The game we want to add for.
@@ -138,5 +186,45 @@ public class Block implements Collidable, Sprite {
      */
     public Rectangle getRectangle() {
         return new Rectangle(this.rectangle);
+    }
+
+    /**
+     * checks if the ball and block colors are equal.
+     * @param ball THe ball we want to check about.
+     * @return true if the colors are equal, otherwise false.
+     */
+    public boolean ballColorMatch(Ball ball) {
+        return this.insideColor.equals(ball.getColor());
+    }
+
+    /**
+     * remove "this" block from the Game.
+     * @param g The game we want to delete from.
+     */
+    public void removeFromGame(Game g) {
+        g.removeCollidable(this);
+    }
+
+    /**
+     * notify all HitListeners on the event.
+     * @param hitter the ball was hit the block.
+     */
+    private void notifyHit(Ball hitter) {
+        // Make a copy of the hitListeners before iterating over them.
+        List<HitListener> listeners = new ArrayList<HitListener>(this.hitListeners);
+        // Notify all listeners about a hit event:
+        for (HitListener hl : listeners) {
+            hl.hitEvent(this, hitter);
+        }
+    }
+
+    /**
+     * change the ball color if he is in different color.
+     * @param ball The ball we want to change his color.
+     */
+    public void changeBallColor(Ball ball) {
+        if (!ballColorMatch(ball)) {
+            ball.setColor(this.insideColor);
+        }
     }
 }

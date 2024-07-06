@@ -4,6 +4,10 @@ Barak Davidovitch
 OOP ex2
  */
 
+package geometry;
+
+import game_util.Util;
+
 /**
  * This Point class implement point and their methods for doing GUI
  * that connect between lines and points.

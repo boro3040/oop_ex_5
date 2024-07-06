@@ -3,12 +3,27 @@ Barak Davidovitch
 211604350
 OOP BIU 2024
  */
+
+package game_util;
+
 import biuoop.DrawSurface;
 import biuoop.GUI;
 import biuoop.Sleeper;
 import java.awt.Color;
 import java.util.List;
 import java.util.ArrayList;
+import sprites.SpriteCollection;
+import sprites.Sprite;
+import sprites.Block;
+import sprites.Ball;
+import sprites.Paddle;
+import geometry.Point;
+import geometry.Rectangle;
+import geometry.Velocity;
+import collidables.Collidable;
+import game_util.listeners.Counter;
+import game_util.listeners.BlockRemover;
+import game_util.listeners.BallRemover;
 
 /**
  * This class will hold the sprites and the collidables, and will be in charge
@@ -19,9 +34,13 @@ public class Game {
     private final SpriteCollection sprites;
     private final GameEnvironment environment;
     private final List<Ball> balls;
+    private final Counter remainingBlocks;
+    private final Counter remainingBalls;
     private GUI gui;
     private final int guiWidth = 800;
     private final int guiHeight = 600;
+    private final BlockRemover blockRemover;
+    private final BallRemover ballRemover;
 
     /**
      * The constructor that initialize empty sprites and environment.
@@ -30,6 +49,10 @@ public class Game {
         this.sprites = new SpriteCollection();
         this.environment = new GameEnvironment();
         this.balls = new ArrayList<>();
+        this.remainingBlocks = new Counter(0);
+        this.remainingBalls = new Counter(0);
+        this.blockRemover = new BlockRemover(this, this.remainingBlocks);
+        this.ballRemover = new BallRemover(this, this.remainingBalls);
     }
 
     /**
@@ -59,6 +82,30 @@ public class Game {
     }
 
     /**
+     * remove ball from balls list.
+     * @param b the Ball we want to remove.
+     */
+    public void removeBall(Ball b) {
+        this.balls.remove(b);
+    }
+
+    /**
+     * This method remove Collidable object from the GameEnvironment.
+     * @param c the Collidable we want to remove.
+     */
+    public void removeCollidable(Collidable c) {
+        this.environment.removeCollidable(c);
+    }
+
+    /**
+     * remove a Sprite from the sprites Collection.
+     * @param s The sprite we want to delete.
+     */
+    public void removeSprite(Sprite s) {
+        this.sprites.removeSprite(s);
+    }
+
+    /**
      * This method initialize all balls in game from the same spot with different
      * starting angels.
      * @param ballsStart the Point all balls starts from.
@@ -74,6 +121,7 @@ public class Game {
             Ball ball = new Ball(ballsStart, ballRadius, Color.WHITE, this.environment);
             ball.setVelocity(Velocity.fromAngleAndSpeed(startAngle + i * angleDiff, speed));
             ball.addToGame(this);
+            this.remainingBalls.increase(1);
         }
     }
 
@@ -100,7 +148,8 @@ public class Game {
         // lower block
         block = new Block(new Rectangle(new Point(frameSize, this.guiHeight - frameSize),
                 this.guiWidth - 2 * frameSize, frameSize),
-                insideColor, outsideColor);
+                Color.GREEN, Color.GREEN);
+        block.addHitListener(this.ballRemover);
         block.addToGame(this);
     }
 
@@ -112,7 +161,7 @@ public class Game {
         int frameSize = 20;
         this.gui = new GUI("Arkanoid", this.guiWidth, this.guiHeight);
         Block screen = new Block(new Rectangle(new Point(0, 0), this.guiWidth,
-                                this.guiHeight), Color.BLUE, Color.blue);
+                this.guiHeight), Color.GREEN, Color.GREEN);
         screen.addScreenToGame(this);
 
         // add 2 ball to the game, in specific location, in middle of the screen.
@@ -127,11 +176,14 @@ public class Game {
         paddle.addToGame(this);
 
         // add all the inside blocks.
-        Color[] colors = {Color.GREEN, Color.PINK, Color.BLUE, Color.YELLOW,
+        Color[] colors = {Color.WHITE, Color.PINK, Color.BLUE, Color.YELLOW,
                             Color.RED, Color.GRAY};
         double blockSize = 50;
         Point startBlockUpperLeft = new Point(this.guiWidth - frameSize - blockSize,
                                             (double) this.guiHeight / 2 - frameSize);
+
+        initializeFrame(frameSize, Color.GRAY, Color.GRAY);
+
         int blocksLines = 6;
         int minBlocksInLine = 7;
         for (int i = 0; i < blocksLines; i++) {
@@ -140,10 +192,11 @@ public class Game {
                 tempPoint.movePoint(-j * blockSize, -i * frameSize);
                 Block block = new Block(new Rectangle(tempPoint, blockSize,
                                         frameSize), colors[i], Color.BLACK);
+                block.addHitListener(this.blockRemover);
+                this.remainingBlocks.increase(1);
                 block.addToGame(this);
             }
         }
-        initializeFrame(frameSize, Color.GRAY, Color.BLACK);
     }
 
     /**
@@ -152,6 +205,7 @@ public class Game {
     public void run() {
         int framesPerSecond = 60;
         int millisecondsPerFrame = 1000 / framesPerSecond;
+        int endFlag = 0;
         while (true) {
             Sleeper sleeper = new Sleeper();
             long startTime = System.currentTimeMillis(); // timing
@@ -159,6 +213,14 @@ public class Game {
             this.sprites.drawAllOn(d);
             this.gui.show(d);
             this.sprites.notifyAllTimePassed();
+            if (endFlag == 1) {
+                sleeper.sleepFor(2000);
+                this.gui.close();
+                return;
+            } else if ((this.remainingBlocks.getValue() == 0)
+                        || (this.remainingBalls.getValue() == 0)) {
+                endFlag = 1;
+            }
             // timing
             long usedTime = System.currentTimeMillis() - startTime;
             long milliSecondLeftToSleep = millisecondsPerFrame - usedTime;

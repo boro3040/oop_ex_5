@@ -3,7 +3,11 @@ Barak Davidovitch
 211604350
 OOP ex2
  */
+
+package geometry;
+
 import java.util.List;
+import game_util.Util;
 
 /**
  * This Line class is class of line-segments that starts in one point in

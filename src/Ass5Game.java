@@ -4,10 +4,12 @@ Barak Davidovitch
 OOP BIU 2024
  */
 
+import game_util.Game;
+
 /**
  * class that runs the Game.
  */
-public class Ass3Game {
+public class Ass5Game {
 
     /**
      * the maim method that creating the game, initialize it, and running it.
