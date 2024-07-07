@@ -149,6 +149,15 @@ public class Rectangle {
     }
 
     /**
+     * getter of the center of Rectangle.
+     * @return the center of Rectangle as Point.
+     */
+    public Point getCenter() {
+        return new Point((this.getMaxX() + this.getMinX()) / 2,
+                        (this.getMaxY() + this.getMinY()) / 2);
+    }
+
+    /**
      * This function checks if 2 rectangles are equal.
      * @param other THe other rectangle we want to check equality.
      * @return true if the rectangles are in the same place, otherwise false.

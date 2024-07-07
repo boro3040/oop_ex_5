@@ -12,11 +12,6 @@ import biuoop.Sleeper;
 import java.awt.Color;
 import java.util.List;
 import java.util.ArrayList;
-import sprites.SpriteCollection;
-import sprites.Sprite;
-import sprites.Block;
-import sprites.Ball;
-import sprites.Paddle;
 import geometry.Point;
 import geometry.Rectangle;
 import geometry.Velocity;
@@ -24,6 +19,13 @@ import collidables.Collidable;
 import game_util.listeners.Counter;
 import game_util.listeners.BlockRemover;
 import game_util.listeners.BallRemover;
+import game_util.listeners.ScoreTrackingListener;
+import sprites.Ball;
+import sprites.ScoreIndicator;
+import sprites.Block;
+import sprites.Paddle;
+import sprites.Sprite;
+import sprites.SpriteCollection;
 
 /**
  * This class will hold the sprites and the collidables, and will be in charge
@@ -36,11 +38,13 @@ public class Game {
     private final List<Ball> balls;
     private final Counter remainingBlocks;
     private final Counter remainingBalls;
+    private final Counter scoreCounter;
     private GUI gui;
     private final int guiWidth = 800;
     private final int guiHeight = 600;
     private final BlockRemover blockRemover;
     private final BallRemover ballRemover;
+    private final ScoreTrackingListener scoreTracker;
 
     /**
      * The constructor that initialize empty sprites and environment.
@@ -53,6 +57,8 @@ public class Game {
         this.remainingBalls = new Counter(0);
         this.blockRemover = new BlockRemover(this, this.remainingBlocks);
         this.ballRemover = new BallRemover(this, this.remainingBalls);
+        this.scoreCounter = new Counter(0);
+        this.scoreTracker = new ScoreTrackingListener(this.scoreCounter);
     }
 
     /**
@@ -132,21 +138,29 @@ public class Game {
      * @param outsideColor the Color outside the frame.
      */
     private void initializeFrame(int frameSize, Color insideColor, Color outsideColor) {
+        // score Indicator
+        int scoreIndHeight = 20;
+        ScoreIndicator scoreIndicator = new ScoreIndicator(new Rectangle(new Point(0, 0),
+                                                        this.guiWidth, scoreIndHeight),
+                                                        Color.WHITE, Color.WHITE, this.scoreCounter);
+        scoreIndicator.addHitListener(this.scoreTracker);
+        scoreIndicator.addToGame(this);
+
         // right block
         Block block = new Block(new Rectangle(new Point(this.guiWidth - frameSize,
-                frameSize), frameSize, this.guiHeight - frameSize),
+                frameSize + scoreIndHeight), frameSize, this.guiHeight - frameSize),
                 insideColor, outsideColor);
         block.addToGame(this);
         // left block
-        block = new Block(new Rectangle(new Point(0, frameSize), frameSize,
+        block = new Block(new Rectangle(new Point(0, frameSize + scoreIndHeight), frameSize,
                 this.guiHeight - frameSize), insideColor, outsideColor);
         block.addToGame(this);
         // upper block
-        block = new Block(new Rectangle(new Point(0, 0), this.guiWidth,
+        block = new Block(new Rectangle(new Point(0, scoreIndHeight), this.guiWidth,
                 frameSize), insideColor, outsideColor);
         block.addToGame(this);
         // lower block
-        block = new Block(new Rectangle(new Point(frameSize, this.guiHeight - frameSize),
+        block = new Block(new Rectangle(new Point(frameSize, this.guiHeight - frameSize + scoreIndHeight),
                 this.guiWidth - 2 * frameSize, frameSize),
                 Color.GREEN, Color.GREEN);
         block.addHitListener(this.ballRemover);
@@ -161,13 +175,13 @@ public class Game {
         int frameSize = 20;
         this.gui = new GUI("Arkanoid", this.guiWidth, this.guiHeight);
         Block screen = new Block(new Rectangle(new Point(0, 0), this.guiWidth,
-                this.guiHeight), Color.GREEN, Color.GREEN);
+                this.guiHeight), new Color(42, 130, 21, 255), new Color(42, 130, 21, 255));
         screen.addScreenToGame(this);
 
         // add 2 ball to the game, in specific location, in middle of the screen.
         initializeBalls(new Point((double) this.guiWidth / 2,
                         (double) this.guiHeight * 3 / 4),
-                        2, -45, 90, 3);
+                        1, -45, 90, 3);
 
         int paddleSize = 100;
         Paddle paddle = new Paddle(new Rectangle(new Point((double) this.guiWidth / 2,
@@ -193,6 +207,7 @@ public class Game {
                 Block block = new Block(new Rectangle(tempPoint, blockSize,
                                         frameSize), colors[i], Color.BLACK);
                 block.addHitListener(this.blockRemover);
+                block.addHitListener(this.scoreTracker);
                 this.remainingBlocks.increase(1);
                 block.addToGame(this);
             }
@@ -214,11 +229,13 @@ public class Game {
             this.gui.show(d);
             this.sprites.notifyAllTimePassed();
             if (endFlag == 1) {
-                sleeper.sleepFor(2000);
+                sleeper.sleepFor(1000);
                 this.gui.close();
                 return;
-            } else if ((this.remainingBlocks.getValue() == 0)
-                        || (this.remainingBalls.getValue() == 0)) {
+            } else if (this.remainingBlocks.getValue() == 0) {
+                endFlag = 1;
+                this.scoreTracker.addCurrentScore(100);
+            } else if (this.remainingBalls.getValue() == 0) {
                 endFlag = 1;
             }
             // timing

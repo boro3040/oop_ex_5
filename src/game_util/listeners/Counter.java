@@ -22,6 +22,14 @@ public class Counter {
     }
 
     /**
+     * copy constructor.
+     * @param c the Counter we want to copy.
+     */
+    public Counter(Counter c) {
+        this.counter = c.getValue();
+    }
+
+    /**
      * add number to current count.
      * @param number the number to add.
      */
